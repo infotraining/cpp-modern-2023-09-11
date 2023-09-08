@@ -26,23 +26,34 @@ if (NOT Catch2_FOUND)
   FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG        v3.3.2 # or a later release
+    GIT_TAG        v3.4.0 # or a later release
   )
 
   FetchContent_MakeAvailable(Catch2)
+
+  list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 endif()
 
 enable_testing()
 
-add_test(AllTests ...)
+include(CTest)
+include(Catch)
 
-add_subdirectory(structured_binding)
+add_subdirectory(move-semantics)
+add_subdirectory(smart-pointers)
+add_subdirectory(lambdas)
+add_subdirectory(constexpr)
+add_subdirectory(structured-bindings)
 add_subdirectory(ifs)
 add_subdirectory(small-features)
-add_subdirectory(ctad)
-add_subdirectory(fold-expressions)
 add_subdirectory(string-view)
 add_subdirectory(optional)
 add_subdirectory(any)
 add_subdirectory(variant)
 
+# add_subdirectory(_exercises/constexpr-if-ex)
+# add_subdirectory(_exercises/ctad-ex)
+# add_subdirectory(_exercises/fold-expressions-ex)
+# add_subdirectory(_exercises/optional-ex)
+# add_subdirectory(_exercises/variant-ex)
+# add_subdirectory(_exercises/string-view-ex)

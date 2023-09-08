@@ -12,4 +12,7 @@ file(GLOB HEADERS_LIST "*.h" "*.hpp")
 add_executable(${TARGET_MAIN} ${SRC_LIST} ${HEADERS_LIST})
 target_link_libraries(${TARGET_MAIN} PRIVATE Catch2::Catch2WithMain)
 
+target_compile_options(${TARGET_MAIN} PRIVATE -fsanitize=address)
+target_link_options(${TARGET_MAIN} PRIVATE -fsanitize=address)
+
 catch_discover_tests(${TARGET_MAIN})
