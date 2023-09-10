@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
+#include <algorithm>
+#include <string_view>
 
 ////////////////////////////////////////////////////////////////////////////
 // Data - class with copy & move semantics (user provided implementation)
@@ -81,6 +83,11 @@ public:
     {
         return data_ + size_;
     }
+
+    size_t size() const
+    {
+        return size_;
+    }
 };
 
 Data create_data_set()
@@ -91,7 +98,7 @@ Data create_data_set()
 }
 
 template <typename TContainer>
-void print(const std::string& prefix, const TContainer& container)
+void print(const TContainer& container, std::string_view prefix = "items")
 {
     std::cout << prefix << " - [ ";
     for (const auto& item : container)
