@@ -3,7 +3,7 @@
 
 TEST_CASE("Forward List")
 {
-    using namespace ModernCpp;
+    using namespace LegacyCode;
 
     SECTION("default construction")
     {
@@ -79,7 +79,7 @@ TEST_CASE("Forward List")
             CHECK(fwd_lst.front() == 1);
 
             fwd_lst.pop_front();
-            
+
             SECTION("list is empty")
             {
                 CHECK(fwd_lst.empty());
@@ -102,7 +102,7 @@ TEST_CASE("Forward List")
             CHECK(fwd_lst.size() == 4);
 
             fwd_lst.pop_front();
-            
+
             SECTION("size is decreased")
             {
                 CHECK(fwd_lst.size() == 3);
@@ -113,13 +113,42 @@ TEST_CASE("Forward List")
                 CHECK(fwd_lst.front() == 3);
             }
         }
+
     }
+
+    SECTION("operator <<")
+        {
+            SECTION("empty list")
+            {
+                FwdList<int> fwd_lst;
+
+                std::stringstream ss;
+
+                ss << fwd_lst;
+
+                CHECK(ss.str() == "[]");
+            }
+
+            SECTION("list with items")
+            {
+                FwdList<int> fwd_lst;
+                fwd_lst.push_front(1);
+                fwd_lst.push_front(2);
+                fwd_lst.push_front(3);
+
+                std::stringstream ss;
+
+                ss << fwd_lst;
+
+                CHECK(ss.str() == "[3, 2, 1]");
+            }
+        }
 
     SECTION("stress test")
     {
         FwdList<int> fwd_lst;
 
-        for(int i = 0; i < 1'000'000; ++i)
+        for (int i = 0; i < 1'000'000; ++i)
             fwd_lst.push_front(i);
     }
 }
