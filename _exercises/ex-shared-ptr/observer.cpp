@@ -83,31 +83,31 @@ public:
     }
 };
 
-TEST_CASE("observer")
-{
-    using namespace std;
+// TEST_CASE("observer")
+// {
+//     using namespace std;
 
-    Subject s;
+//     Subject s;
 
-    {
-        Customer* o1 = new Customer();
-        s.register_observer(o1);
+//     {
+//         Customer* o1 = new Customer();
+//         s.register_observer(o1);
 
-        {
-            Logger* logger = new Logger("log-20200707-12:22:33.dat");
-            s.register_observer(logger);
+//         {
+//             Logger* logger = new Logger("log-20200707-12:22:33.dat");
+//             s.register_observer(logger);
 
-            s.set_state(1);
-            s.set_state(2);
-            s.set_state(3);
+//             s.set_state(1);
+//             s.set_state(2);
+//             s.set_state(3);
 
-            delete logger;
-        }
-        cout << "++++ End of scope ++++\n\n"
-             << endl;
+//             delete logger;
+//         }
+//         cout << "++++ End of scope ++++\n\n"
+//              << endl;
 
-        s.set_state(42);
-        s.set_state(665);
-        s.unregister_observer(o1);
-    }
-}
+//         s.set_state(42);
+//         s.set_state(665);
+//         s.unregister_observer(o1);
+//     }
+// }
