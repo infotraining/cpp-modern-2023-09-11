@@ -1,5 +1,9 @@
 # Modern C++ - Training
 
+## Slides
+
+* https://infotraining.bitbucket.io/cpp-modern/slides/en/
+
 ## System requirements
 
 You should choose one of the following configurations:
