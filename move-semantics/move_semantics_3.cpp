@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <string_view>
+#include <utility>
 
 ////////////////////////////////////////////////////////////////////////////
 // Data - class with copy & move semantics (user provided implementation)
@@ -17,8 +18,8 @@ public:
     using const_iterator = const int*;
 
     Data(std::string name, std::initializer_list<int> list)
-        : name_{std::move(name)}, data_{new int[list.size()]}
-        , size_{list.size()}
+        : name_{ std::move(name) }, data_{ new int[list.size()] }
+        , size_{ list.size() }
     {
         std::copy(list.begin(), list.end(), data_);
 
@@ -27,7 +28,7 @@ public:
 
     Data(const Data& other)
         : name_(other.name_)
-        , data_{new int[other.size_]}
+        , data_{ new int[other.size_] }
         , size_(other.size_)
     {
         std::copy(other.begin(), other.end(), data_);
@@ -37,7 +38,7 @@ public:
 
     Data& operator=(const Data& other)
     {
-        Data temp(other);
+        Data temp(other); // cc
         swap(temp);
 
         std::cout << "Data=(" << name_ << ": cc)\n";
@@ -46,12 +47,28 @@ public:
     }
 
     /////////////////////////////////////////////////
-    // move constructor - TODO
-    
+    // move constructor
+    Data(Data&& other) : name_(std::move(other.name_)),
+        data_{ std::exchange(other.data_, nullptr) }, size_{ std::exchange(other.size_, 0) }
+    {
+        std::cout << "Data(" << name_ << ": mv)\n";
+    }
 
     /////////////////////////////////////////////////
-    // move assignment - TODO
-    
+    // move assignment
+    Data& operator=(Data&& other)
+    {
+        if (this != &other)
+        {
+            Data temp(std::move(other)); // mv
+            swap(temp);
+        }
+
+        std::cout << "Data=(" << name_ << ": mv)\n";
+
+        return *this;
+    }
+
     ~Data()
     {
         delete[] data_;
@@ -92,7 +109,7 @@ public:
 
 Data create_data_set()
 {
-    Data ds{"data-set-one", {54, 6, 34, 235, 64356, 235, 23}};
+    Data ds{ "data-set-one", {54, 6, 34, 235, 64356, 235, 23} };
 
     return ds;
 }
@@ -108,15 +125,65 @@ void print(const TContainer& container, std::string_view prefix = "items")
     std::cout << "]\n";
 }
 
-// TEST_CASE("3---")
-// {
-//     std::cout << "\n--------------------------\n\n";
-// }
+TEST_CASE("std::move for primitive types")
+{
+    int x = 42;
+    int y = std::move(x); // copy
+    CHECK(x == y);
 
-// TEST_CASE("Data & move semantics")
-// {
-//     Data ds1{"ds1", {1, 2, 3, 4, 5}};
+    int* ptr_a = new int(13);
+    int* ptr_b = std::move(ptr_a);
+    CHECK(ptr_a == ptr_b);
+}
 
-//     Data backup = ds1; // copy
-//     print("backup", backup);
-// }
+TEST_CASE("Data & move semantics")
+{
+    Data ds1{ "ds1", {1, 2, 3, 4, 5} };
+
+    Data backup = ds1; // copy
+    print(backup, "backup");
+
+    Data target = std::move(ds1); // move
+    print(target, "other");
+
+    Data ds2 = create_data_set(); // move
+}
+
+struct LargeDataSet
+{
+    std::string name;
+    Data ds;
+    int value;
+
+    ~LargeDataSet() {}
+
+    LargeDataSet(const LargeDataSet&) = default;  // user declared
+    LargeDataSet& operator=(const LargeDataSet&) = default;
+    LargeDataSet(LargeDataSet&&) = default;
+    LargeDataSet& operator=(LargeDataSet&&) = default;
+};
+
+TEST_CASE("LargeDataSet")
+{
+    LargeDataSet lds{"lds", {"ds", {1, 2, 3}}, 42};
+
+    LargeDataSet lds_backup = lds; // cc
+    LargeDataSet lds_target = std::move(lds); // cc
+
+    // CHECK(lds.name == "");
+    // CHECK(lds.value == 42);
+}
+
+struct Dummy
+{
+    std::vector<int> data;
+
+    Dummy() : data{1, 2, 3}
+    {}
+};
+
+
+TEST_CASE("Dummy")
+{
+    Dummy d1;
+}
