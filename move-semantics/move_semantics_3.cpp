@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string_view>
 #include <utility>
+#include <memory>
 
 ////////////////////////////////////////////////////////////////////////////
 // Data - class with copy & move semantics (user provided implementation)
@@ -48,10 +49,11 @@ public:
 
     /////////////////////////////////////////////////
     // move constructor
-    Data(Data&& other) : name_(std::move(other.name_)),
-        data_{ std::exchange(other.data_, nullptr) }, size_{ std::exchange(other.size_, 0) }
+    Data(Data&& other) noexcept
+        : name_(std::move(other.name_)),
+          data_{ std::exchange(other.data_, nullptr) }, size_{ std::exchange(other.size_, 0) }
     {
-        std::cout << "Data(" << name_ << ": mv)\n";
+        //std::cout << "Data(" << name_ << ": mv)\n";
     }
 
     /////////////////////////////////////////////////
@@ -163,9 +165,11 @@ struct LargeDataSet
     LargeDataSet& operator=(LargeDataSet&&) = default;
 };
 
+static_assert(std::is_nothrow_move_constructible_v<LargeDataSet>);
+
 TEST_CASE("LargeDataSet")
 {
-    LargeDataSet lds{"lds", {"ds", {1, 2, 3}}, 42};
+    LargeDataSet lds{ "lds", {"ds", {1, 2, 3}}, 42 };
 
     LargeDataSet lds_backup = lds; // cc
     LargeDataSet lds_target = std::move(lds); // mv
@@ -174,21 +178,62 @@ TEST_CASE("LargeDataSet")
     // CHECK(lds.value == 42);
 }
 
-struct AnotherDataSet 
+struct AnotherDataSet
 {
     std::vector<int> data;
 
     AnotherDataSet(std::size_t size = 1024, int value = 0) : data(size, value)
-    {        
+    {
     }
 
     // Rule of ZERO
 };
 
+struct PointerWrapper 
+{
+    int* data;
+
+    PointerWrapper(int* data) noexcept : data{data}
+    {}
+
+    PointerWrapper(const PointerWrapper& other) = delete;
+    PointerWrapper& operator=(const PointerWrapper& other) = delete;
+
+    PointerWrapper(PointerWrapper&& other) noexcept
+        : data{std::exchange(other.data, nullptr)}
+    {
+    }
+
+    PointerWrapper& operator=(PointerWrapper&& other)
+    {
+        // TODO
+
+        return *this;
+    }
+
+    ~PointerWrapper()
+    {
+        delete data;
+    }
+};
+
+struct SharedPointerWrapper 
+{
+    std::shared_ptr<int> data;
+};
+
+TEST_CASE("copy & move for PointerWrapper")
+{
+    int* x = new int(42);
+    
+    PointerWrapper pw1{x};
+    PointerWrapper pw2 = std::move(pw1); // it will copy pw1.data to pw2.data
+}
+
 TEST_CASE("AnotherDataSet")
 {
     AnotherDataSet ads1(1024, 1);
-    
+
     AnotherDataSet ads1_backup = ads1; // cc
 
     AnotherDataSet target = std::move(ads1);  // mv

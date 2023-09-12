@@ -171,3 +171,21 @@ TEST_CASE("auto& vs. auto&&")
         item = 0;
     }
 }
+
+
+TEST_CASE("pushing to vector")
+{
+    std::vector<Gadget> gadgets;
+
+    gadgets.push_back(Gadget{1, "ipad"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{2, "ipod"});
+}
