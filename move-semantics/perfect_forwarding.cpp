@@ -39,22 +39,39 @@ void use(const Gadget& g)
     have_fun(g);
 }
 
-void use(Gadget&& g)
+TEST_CASE("custom forwarding")
 {
-    have_fun(std::move(g));
+    Gadget g{1, "gadget"};
+    const Gadget cg{2, "const-gadget"};
+
+    use(g);
+    use(cg);
+    use(Gadget{3, "temp-gadget"});
 }
 
-// TEST_CASE("4---")
-// {
-//     std::cout << "\n--------------------------\n\n";
-// }
+///////////////////////////////////////////////////////////////////////////
 
-// TEST_CASE("custom forwarding")
-// {
-//     Gadget g{1, "gadget"};
-//     const Gadget cg{2, "const-gadget"};
+struct GadgetContainer
+{
+    std::vector<Gadget> gadgets;
 
-//     use(g);
-//     use(cg);
-//     use(Gadget{3, "temp-gadget"});
-// }
+    GadgetContainer() 
+    {
+        gadgets.reserve(100);
+    }
+
+    void add(const Gadget& g)
+    {
+        gadgets.push_back(g);
+    }
+};
+
+TEST_CASE("forwarding to containers")
+{
+    Gadget::reset_counters();
+
+    GadgetContainer g_container;
+
+    Gadget g1{1, "ipad"};
+    g_container.add(g1);
+}

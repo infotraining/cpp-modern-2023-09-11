@@ -87,12 +87,11 @@ TEST_CASE("move semantics - UniquePtr")
     pg1->use();   // call operator->
 
     UniquePtr<Gadget> pg2 = std::move(pg1);
+    CHECK(pg1.get() == nullptr);
+    
     pg2->use();
 
     UniquePtr<Gadget> pg3{ new Gadget{2, "ipod"} };
     pg3 = std::move(pg2);
-
-    pg2->use();
-
-    CHECK(pg1.get() == nullptr);
+    CHECK(pg2.get() == nullptr);
 }

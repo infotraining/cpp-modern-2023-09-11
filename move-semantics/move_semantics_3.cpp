@@ -125,14 +125,14 @@ void print(const TContainer& container, std::string_view prefix = "items")
     std::cout << "]\n";
 }
 
-TEST_CASE("std::move for primitive types")
+TEST_CASE("std::move for primitive types means copy")
 {
     int x = 42;
     int y = std::move(x); // copy
     CHECK(x == y);
 
     int* ptr_a = new int(13);
-    int* ptr_b = std::move(ptr_a);
+    int* ptr_b = std::move(ptr_a); // copy
     CHECK(ptr_a == ptr_b);
 }
 
@@ -155,8 +155,8 @@ struct LargeDataSet
     Data ds;
     int value;
 
-    ~LargeDataSet() {}
-
+    // Rule of Five
+    ~LargeDataSet() = default;  // user declared
     LargeDataSet(const LargeDataSet&) = default;  // user declared
     LargeDataSet& operator=(const LargeDataSet&) = default;
     LargeDataSet(LargeDataSet&&) = default;
@@ -168,22 +168,28 @@ TEST_CASE("LargeDataSet")
     LargeDataSet lds{"lds", {"ds", {1, 2, 3}}, 42};
 
     LargeDataSet lds_backup = lds; // cc
-    LargeDataSet lds_target = std::move(lds); // cc
+    LargeDataSet lds_target = std::move(lds); // mv
 
     // CHECK(lds.name == "");
     // CHECK(lds.value == 42);
 }
 
-struct Dummy
+struct AnotherDataSet 
 {
     std::vector<int> data;
 
-    Dummy() : data{1, 2, 3}
-    {}
+    AnotherDataSet(std::size_t size = 1024, int value = 0) : data(size, value)
+    {        
+    }
+
+    // Rule of ZERO
 };
 
-
-TEST_CASE("Dummy")
+TEST_CASE("AnotherDataSet")
 {
-    Dummy d1;
+    AnotherDataSet ads1(1024, 1);
+    
+    AnotherDataSet ads1_backup = ads1; // cc
+
+    AnotherDataSet target = std::move(ads1);  // mv
 }
