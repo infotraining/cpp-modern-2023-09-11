@@ -157,6 +157,21 @@ struct LargeDataSet
     Data ds;
     int value;
 
+    // LargeDataSet(std::string name_arg, Data ds_arg, int value_arg) : name(name_arg), ds(ds_arg), value(value_arg)
+    // {}
+
+    // LargeDataSet(const std::string& name_arg, const Data& ds_arg, int value_arg) : name(name_arg), ds(ds_arg), value(value_arg)
+    // {}
+
+    LargeDataSet(std::string name_arg, Data ds_arg, int value_arg) : name(std::move(name_arg)), ds(std::move(ds_arg)), value(value_arg)
+    {}
+
+    // template <typename TNameArg, typename TDsArgs>
+    // LargeDataSet(TNameArg&& name_arg, TDsArgs&& ds_arg, int value_arg) 
+    //     : name(std::forward<TNameArg>(name_arg)), ds(std::forward<TDsArgs>(ds_arg), value{value_arg}
+    // {
+    // }
+
     // Rule of Five
     ~LargeDataSet() = default;  // user declared
     LargeDataSet(const LargeDataSet&) = default;  // user declared
@@ -169,7 +184,12 @@ static_assert(std::is_nothrow_move_constructible_v<LargeDataSet>);
 
 TEST_CASE("LargeDataSet")
 {
-    LargeDataSet lds{ "lds", {"ds", {1, 2, 3}}, 42 };
+    LargeDataSet lds{"lds", {"ds", {1, 2, 3}}, 42 };
+
+    std::string lds_name = "lds2";
+    Data ds2{ "ds2", {1, 2, 3}};
+
+    LargeDataSet lds2{lds_name, ds2, 665};
 
     LargeDataSet lds_backup = lds; // cc
     LargeDataSet lds_target = std::move(lds); // mv
@@ -237,4 +257,24 @@ TEST_CASE("AnotherDataSet")
     AnotherDataSet ads1_backup = ads1; // cc
 
     AnotherDataSet target = std::move(ads1);  // mv
+}
+
+
+struct EvilCaseOfForwardingConstructor
+{
+    std::string member;
+
+    // EvilCaseOfForwardingConstructor(std::string m) : member{std::move(m)}
+    // {}
+
+    template <typename TArg>
+    EvilCaseOfForwardingConstructor(TArg&& m) : member{std::forward<TArg>(m)}
+    {}
+};
+
+TEST_CASE("Evil case")
+{
+    EvilCaseOfForwardingConstructor ecofc{"text"};
+
+    //EvilCaseOfForwardingConstructor backup = ecofc; // evil - copy constructor is overshadowed by templated 
 }
