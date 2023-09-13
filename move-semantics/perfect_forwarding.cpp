@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "gadget.hpp"
+#include <atomic>
 
 //#define MSVC
 
@@ -89,7 +90,7 @@ struct GadgetContainer
     {
         gadgets.reserve(100);
     }
-    
+
     /*
     void add(const Gadget& g)
     {
@@ -101,12 +102,12 @@ struct GadgetContainer
         gadgets.push_back(std::move(g));
     }
    */
-   
+
     template<typename T>
     void add(T&& g)
     {
         gadgets.push_back(std::forward<T>(g));
-    }    
+    }
 
     template <typename... TArgs>
     void emplace(TArgs&&... args)
@@ -133,7 +134,7 @@ TEST_CASE("forwarding to containers")
 
 template <typename T>
 void ref_collapse(T& arg)
-{    
+{
 }
 
 template <typename T>
@@ -164,9 +165,9 @@ TEST_CASE("auto& vs. auto&&")
 
     auto& aref1 = x;
 
-    std::vector<bool> vec = {1, 1, 1, 1, 1};
+    std::vector<bool> vec = { 1, 1, 1, 1, 1 };
 
-    for(auto&& item : vec)
+    for (auto&& item : vec)
     {
         item = 0;
     }
@@ -177,15 +178,96 @@ TEST_CASE("pushing to vector")
 {
     std::vector<Gadget> gadgets;
 
-    gadgets.push_back(Gadget{1, "ipad"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
-    gadgets.push_back(Gadget{2, "ipod"});
+    gadgets.push_back(Gadget{ 1, "ipad" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+    gadgets.push_back(Gadget{ 2, "ipod" });
+}
+
+std::string get_name()
+{
+    return "Adam";
+}
+
+TEST_CASE("value categories")
+{
+    std::string name = "John";
+
+    SECTION("real transfer of the state")
+    {
+        auto target = std::move(name);
+    }
+
+    SECTION("move doesn't move")
+    {
+        auto&& xvalue_ref = std::move(name); // just the static cast
+
+        std::string target = std::move(xvalue_ref); // now we transfer the state
+    }
+
+    auto&& ref_to_materialized_object = get_name(); // xvalue - materialization
+}
+
+std::string get_name_rvo()
+{
+    return "Adam"; // prvalue
+}
+
+std::string get_name_nrvo() // named-rvo
+{
+    std::string name = "Adam";
+    return name; // lvalue
+}
+
+inline std::atomic<int> create_counter()
+{
+    // std::atomic<int> result{0};  // this will not work - because of lvalue after return -> named rvo
+    // return result;
+
+    return std::atomic<int>{0};
+}
+
+TEST_CASE("rvo & nrvo")
+{
+    std::string name = get_name_rvo(); // rvo - since C++17
+
+    std::atomic<int> counter{ 0 };
+
+    //auto backup = counter; // ERROR - atomic is non-copyable
+
+    //auto target_counter = std::move(counter);
+
+    auto local_counter = create_counter();
+}
+
+namespace LegacyCode
+{
+    std::vector<int>* foo()
+    {
+        std::vector<int>* vec = new std::vector<int>(1'000'000);
+
+        return vec;
+    }
+}
+
+namespace ModernCpp
+{
+    std::vector<int> foo()
+    {
+        std::vector<int> vec(1'000'000);
+
+        return vec;
+    }
+}
+
+TEST_CASE("modern & efficient C++")
+{
+    std::vector<int> vec = ModernCpp::foo();
 }
