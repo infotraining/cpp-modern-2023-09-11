@@ -16,7 +16,7 @@ public:
 class Subject
 {
     int state_;
-    std::set<Observer*> observers_;
+    std::set<std::weak_ptr<Observer>, std::owner_less<std::weak_ptr<Observer>>> observers_;
 
 public:
     Subject()
@@ -24,12 +24,12 @@ public:
     {
     }
 
-    void register_observer(Observer* observer)
+    void register_observer(std::weak_ptr<Observer> observer)
     {
         observers_.insert(observer);
     }
 
-    void unregister_observer(Observer* observer)
+    void unregister_observer(std::weak_ptr<Observer> observer)
     {
         observers_.erase(observer);
     }
@@ -46,9 +46,14 @@ public:
 protected:
     void notify(const std::string& event_args)
     {
-        for (std::set<Observer*>::iterator it = observers_.begin(); it != observers_.end(); ++it)
+        for (auto it = observers_.begin(); it != observers_.end(); ++it)
         {
-            (*it)->update(event_args);
+            std::shared_ptr<Observer> living_observer = it->lock();
+            if (living_observer)
+                living_observer->update(event_args);
+            // else
+            // we should remove the pointer to destroyed object from the set
+            
         }
     }
 };
@@ -83,31 +88,30 @@ public:
     }
 };
 
-// TEST_CASE("observer")
-// {
-//     using namespace std;
+TEST_CASE("observer")
+{
+    using namespace std;
 
-//     Subject s;
+    Subject s;
 
-//     {
-//         Customer* o1 = new Customer();
-//         s.register_observer(o1);
+    {
+        auto o1 = std::make_shared<Customer>();
+        s.register_observer(o1);
 
-//         {
-//             Logger* logger = new Logger("log-20200707-12:22:33.dat");
-//             s.register_observer(logger);
+        {
+            auto logger = std::make_shared<Logger>("log-20200707-12:22:33.dat");
+            s.register_observer(logger);
 
-//             s.set_state(1);
-//             s.set_state(2);
-//             s.set_state(3);
+            s.set_state(1);
+            s.set_state(2);
+            s.set_state(3);            
+        }
 
-//             delete logger;
-//         }
-//         cout << "++++ End of scope ++++\n\n"
-//              << endl;
+        cout << "++++ End of scope ++++\n\n"
+             << endl;
 
-//         s.set_state(42);
-//         s.set_state(665);
-//         s.unregister_observer(o1);
-//     }
-// }
+        s.set_state(42);
+        s.set_state(665);
+        s.unregister_observer(o1);
+    }
+}
