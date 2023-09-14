@@ -6,6 +6,8 @@
 #include <numeric>
 #include <memory>
 #include <string_view>
+#include <functional>
+#include <queue>
 
 using namespace std;
 
@@ -207,7 +209,6 @@ TEST_CASE("deduction rules for auto")
     }
 }
 
-
 TEST_CASE("forwarding and lambda")
 {
     std::vector<int> big_data(1'000'000);
@@ -220,4 +221,93 @@ TEST_CASE("forwarding and lambda")
     call_wrapper(printer, "text");
 
     CHECK(counter == 3);
+}
+
+template <typename F, typename TArg>
+decltype(auto) call_wrapper(F&& f, TArg&& arg)
+{
+    return f(std::forward<TArg>(arg));
+}
+
+TEST_CASE("how to store closure")
+{
+    SECTION("the best option - type deduction")
+    {
+        auto square = [](int x) { return x * x; };
+
+        CHECK(square(2) == 4);
+
+        CHECK(call_wrapper([square](int x) { return square(x) * x; }, 2) == 8);
+    }
+
+    SECTION("std::function")
+    {
+        std::function<int(int)> f;
+
+        int factor = 2;
+        
+        f = [factor](int x) { return factor * x; };
+
+        CHECK(f(3) == 6);
+    }
+
+    SECTION("function pointer - for lambda with []")
+    {
+        auto square = [](int x) { return x * x; };
+
+        int(*f)(int) = square;
+
+        CHECK(f(5) == 25);
+
+        // f = [square](int x) { return square(x) * x; }; // ERROR - lambda captures square
+    }
+}
+
+using Task = std::function<void()>;
+
+std::queue<Task> tasks;
+
+struct Printer
+{
+    int id{665};
+
+    void on()
+    {
+        std::cout << "Printer " << id << " is on...\n";
+    }
+
+    void print()
+    {
+        std::cout << "Printer " << id << " is printing...\n";
+    }
+
+    void off()
+    {
+        std::cout << "Printer " << id << " is off...\n";
+    }
+};
+
+TEST_CASE("tasks with lambdas & std::function")
+{
+    Printer prn;
+
+    tasks.push([&prn] { prn.on(); });
+    tasks.push([&prn] { prn.print();});
+    tasks.push([&prn] { prn.off();});
+
+    std::cout << "-----------\n";
+
+    while(!tasks.empty())
+    {
+        Task task = tasks.front();
+        task();
+        tasks.pop();
+    }
+}
+
+TEST_CASE("magic plus for lambda")
+{
+    auto square_1 = [](int x) { return x * x; }; // type deduction works
+
+    auto square_2 = +[](int x) { return x * x; };
 }
