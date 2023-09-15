@@ -72,8 +72,8 @@ class Logger : public Observer
     std::string path_;
 
 public:
-    Logger(const std::string& p)
-        : path_{p}
+    Logger(std::string p)
+        : path_{std::move(p)}
     {
     }
 

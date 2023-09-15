@@ -1,5 +1,9 @@
 # Modern C++ - Training
 
+## Course assessment
+
+* https://forms.gle/Fthttps://forms.gle/FteYg9cSiN5ZMGnV9eYg9cSiN5ZMGnV9
+
 ## Slides
 
 * https://infotraining.bitbucket.io/cpp-modern/slides/en/
