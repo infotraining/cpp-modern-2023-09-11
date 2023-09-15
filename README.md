@@ -2,7 +2,7 @@
 
 ## Course assessment
 
-* https://forms.gle/Fthttps://forms.gle/FteYg9cSiN5ZMGnV9eYg9cSiN5ZMGnV9
+* https://forms.gle/RMb22GJDKKYt8xh3A
 
 ## Slides
 

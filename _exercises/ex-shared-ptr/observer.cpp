@@ -10,6 +10,7 @@ class Observer
 {
 public:
     virtual void update(const std::string& event_args) = 0;
+    // virtual void update(std::any event_args) = 0;
     virtual ~Observer() { }
 };
 
@@ -65,6 +66,11 @@ public:
     {
         std::cout << "Customer notified: " << event << std::endl;
     }
+
+    // void update(std::any event)
+    // {
+    //     std::cout << "Customer notified: " << std::any_cast<std::string>(event) << std::endl;
+    // }
 };
 
 class Logger : public Observer
